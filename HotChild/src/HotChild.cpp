@@ -33,7 +33,7 @@ int sat;
 unsigned int lastGPS;
 bool status;
 
-//SYSTEM_MODE(SEMI_AUTOMATIC);
+SYSTEM_MODE(AUTOMATIC);
 
 Adafruit_MQTT_Subscribe subFeed = Adafruit_MQTT_Subscribe(&mqtt,AIO_USERNAME "/feeds/feed1");
 Adafruit_MQTT_Publish pubFeed = Adafruit_MQTT_Publish(&mqtt,AIO_USERNAME "/feeds/TempHotChild");
@@ -52,13 +52,6 @@ bool MQTT_ping();
 void setup() {
   Serial.begin(9600);
   waitFor(Serial.isConnected,5000);
-  //WiFi.on();
-  //WiFi.clearCredentials(); //prevent from connecting to DDCIOT
-  //WiFi.setCredentials("IoTNetwork");
-  //WiFi.connect(); //Connect to internet, but not Particle Cloud
- // while(WiFi.connecting()) {
-  //Serial.printf(".");
- // }
   //Initialize GPS
   GPS.begin(0x10);  // The I2C address to use is 0x10
   GPS.sendCommand(PMTK_SET_NMEA_OUTPUT_RMCGGA);
@@ -91,14 +84,16 @@ if (millis() - lastGPS > UPDATE) {
   Serial.printf("\n=================================================================\n");
   Serial.printf("Lat: %0.6f, Lon: %0.6f, Alt: %0.6f, Satellites: %i\n",lat, lon, alt, sat);
   Serial.printf("=================================================================\n\n");
+  TempHotChild = bme.readTemperature();
+  Serial.printf("the temp is %.1f \n", TempHotChild);
 }
-TempHotChild = bme.readTemperature();
-if (TempHotChild > 30 ) {
+if (TempHotChild > 20 ) {
   if(mqtt.Update()) { //if mqtt object (Adafruit.io) is available to receive data
     Serial.printf("Publishing %0.2f to Adafruit.io feed FeedNameB \n",TempHotChild);
     pubFeed.publish(TempHotChild);
     Serial.printf("Publishing %0.2f to Adafruit.io feed FeedNameB \n",LatandLon);
     pubFeed1.publish(lat,lon);
+    delay(5000);
    // Receive data from a subscription to an MQTT feed
    // Adafruit_MQTT_Subscribe *subscription;
    // while ((subscription = mqtt.readSubscription(100))) { //wait a moment for new feed data
